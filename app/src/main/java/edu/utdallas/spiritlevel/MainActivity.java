@@ -11,6 +11,10 @@ import android.widget.TextView;
 
 import java.util.Locale;
 
+/*
+ * Get sensor data and display on screen through view drawing
+ * 04/17/2016
+ */
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager manager;
@@ -28,14 +32,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize views
         text = (TextView)findViewById(R.id.textView2);
         perpendicularBar = (SeekBar)findViewById(R.id.seekBar);
         levelBar = (SeekBar)findViewById(R.id.seekBar2);
         perpendicularBar.setMax(360);
         levelBar.setMax(360);
 
+        // Get sensor managet
         manager=(SensorManager)getSystemService(SENSOR_SERVICE);
 
+        // Initialize data
         result = new float[3];
         for(int i = 0; i < 3; i++) {
             result[i] = 0;
@@ -44,12 +51,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
+        // Do low pass processing on sensor value
         lowPass(event.values);
+
+        // Display result on screen
         String XAngle = String.format(Locale.US, "%.2f", result[1]);
         String ZAngle = String.format(Locale.US, "%.2f", result[2]);
         text.setText("Angle around X  : " + XAngle + "\n" + "Angle around Z : " + ZAngle);
-
         perpendicularBar.setProgress( (int)result[1] + 180 );
         levelBar.setProgress( (int)result[2] + 180 );
     }
@@ -59,18 +67,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    // Reginster listener for sensor when activity runs
     @Override
     public void onResume() {
         super.onResume();
         manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ORIENTATION), 0, null);
     }
 
+    // Unregister listener when activity pauses
     @Override
     public void onPause() {
         super.onPause();
         manager.unregisterListener(this);
     }
 
+    // Do low pass filtering process of sensor data
     private void lowPass(float[] oldResult) {
         for(int i = 0; i < 3; i++) {
             result[i] = result[i] + LOW_PASS_ALPHA * (oldResult[i] - result[i]);
