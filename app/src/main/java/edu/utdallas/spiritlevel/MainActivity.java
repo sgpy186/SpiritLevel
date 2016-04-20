@@ -18,6 +18,11 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager manager;
+    private Sensor accelerometer;
+    private Sensor magnetic;
+    private float[] gravity = new float[3];
+    private float[] geomagnetic = new float[3];
+
 
     private TextView text;
     private SeekBar perpendicularBar;
@@ -25,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private float[] result;
 
-    final float LOW_PASS_ALPHA = (float)0.1;
+    float LOW_PASS_ALPHA = (float)0.1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +44,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         perpendicularBar.setMax(360);
         levelBar.setMax(360);
 
-        // Get sensor managet
+        // Get sensor manager and sensors
         manager=(SensorManager)getSystemService(SENSOR_SERVICE);
+        accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetic = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         // Initialize data
         result = new float[3];
@@ -51,15 +58,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                gravity = event.values.clone();
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                geomagnetic = event.values.clone();
+                break;
+        }
+
+        if ((gravity == null) || (geomagnetic == null)) return;
+
+        float[] RMatrix = new float[9];
+        float[] IMatrix = new float[9];
+        SensorManager.getRotationMatrix(RMatrix, IMatrix, gravity, geomagnetic);
+        SensorManager.getOrientation(RMatrix, result);
+
+
         // Do low pass processing on sensor value
-        lowPass(event.values);
+        lowPass(result);
 
         // Display result on screen
-        String XAngle = String.format(Locale.US, "%.2f", result[1]);
-        String ZAngle = String.format(Locale.US, "%.2f", result[2]);
+        String XAngle = String.format(Locale.US, "%.2f", Math.toDegrees(result[1]));
+        String ZAngle = String.format(Locale.US, "%.2f", Math.toDegrees(result[2]));
         text.setText("Angle around X  : " + XAngle + "\n" + "Angle around Z : " + ZAngle);
-        perpendicularBar.setProgress( (int)result[1] + 180 );
-        levelBar.setProgress( (int)result[2] + 180 );
+        perpendicularBar.setProgress( (int)(Float.parseFloat(XAngle)) + 180 );
+        levelBar.setProgress( (int)(Float.parseFloat(ZAngle)) + 180 );
+
+        // Clean up
+        gravity = null;
+        geomagnetic = null;
     }
 
     @Override
@@ -67,16 +95,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    // Reginster listener for sensor when activity runs
+    // Register listener for sensor when activity runs
     @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
-        manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ORIENTATION), 0, null);
+        manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        manager.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_UI);
     }
 
     // Unregister listener when activity pauses
     @Override
-    public void onPause() {
+    protected void onPause() {
         super.onPause();
         manager.unregisterListener(this);
     }
