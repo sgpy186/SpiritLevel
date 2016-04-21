@@ -1,13 +1,26 @@
 package edu.utdallas.spiritlevel;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
+import android.view.Display;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -32,6 +45,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] result;
 
     float LOW_PASS_ALPHA = (float)0.1;
+    private CircleView circleView;
+    static int ACCE_FILTER_DATA_MIN_TIME = 10; // 1000ms
+    long lastSaved = System.currentTimeMillis();
+    MySurfaceView mySurfaceView;
+
+    static int x = 0;
+    static int y = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +59,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         // Initialize views
-        text = (TextView)findViewById(R.id.textView2);
-        perpendicularBar = (SeekBar)findViewById(R.id.seekBar);
-        levelBar = (SeekBar)findViewById(R.id.seekBar2);
-        perpendicularBar.setMax(360);
-        levelBar.setMax(360);
-
+//        text = (TextView)findViewById(R.id.textView2);
+//        perpendicularBar = (SeekBar)findViewById(R.id.seekBar);
+//        levelBar = (SeekBar)findViewById(R.id.seekBar2);
+//        perpendicularBar.setMax(360);
+//        levelBar.setMax(360);
         // Get sensor manager and sensors
         manager=(SensorManager)getSystemService(SENSOR_SERVICE);
         accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetic = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         orient = manager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        mySurfaceView = (MySurfaceView) (findViewById(R.id.surfaceView));
+
+        //findViewById(R.id.btnStart).setOnClickListener(this);
+        //findViewById(R.id.btnStop).setOnClickListener(this);
 
         // Initialize data
         result = new float[3];
@@ -57,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             result[i] = 0;
         }
     }
+
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -76,26 +101,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 return;
         }
 
-        if ((gravity == null) || (geomagnetic == null)) return;
+        if ((System.currentTimeMillis() - lastSaved) > ACCE_FILTER_DATA_MIN_TIME) {
+            lastSaved = System.currentTimeMillis();
 
-        float[] RMatrix = new float[9];
-        SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
-        SensorManager.getOrientation(RMatrix, result);
+            if ((gravity == null) || (geomagnetic == null)) return;
 
+            float[] RMatrix = new float[9];
+            SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
+            SensorManager.getOrientation(RMatrix, result);
 
-        // Do low pass processing on sensor value
-        lowPass(result);
+            //mySurfaceView.startThread();
 
-        // Display result on screen
-        String XAngle = String.format(Locale.US, "%.2f", Math.toDegrees(result[1]));
-        String ZAngle = String.format(Locale.US, "%.2f", Math.toDegrees(result[2]));
-        text.setText("Angle around X  : " + XAngle + "\n" + "Angle around Z : " + ZAngle);
-        perpendicularBar.setProgress( (int)(Float.parseFloat(XAngle)) + 180 );
-        levelBar.setProgress( (int)(Float.parseFloat(ZAngle)) + 180 );
+            // Do low pass processing on sensor value
+            lowPass(result);
 
-        // Clean up
-        gravity = null;
-        geomagnetic = null;
+            // Display result on screen
+
+            String XAngle = String.format(Locale.US, "%.1f", Math.toDegrees(result[1]));
+            String ZAngle = String.format(Locale.US, "%.1f", Math.toDegrees(result[2]));
+            XAngle = XAngle.replace(".","");
+            ZAngle = ZAngle.replace(".", "");
+            x = Integer.parseInt(XAngle);
+            y = Integer.parseInt(ZAngle);
+
+            mySurfaceView.update(0,2*x);
+            //text.setText("Angle around X  : " + XAngle + "\n" + "Angle around Z : " + ZAngle);
+            //perpendicularBar.setProgress( (int)(Float.parseFloat(XAngle)) + 180 );
+            //levelBar.setProgress( (int)(Float.parseFloat(ZAngle)) + 180 );
+
+            // Clean up
+            gravity = null;
+            geomagnetic = null;
+        }
     }
 
     @Override
@@ -125,6 +162,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             result[i] = result[i] + LOW_PASS_ALPHA * (oldResult[i] - result[i]);
         }
     }
+
+
+//    @Override
+//    public void onClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.btnStart:
+//                try {
+//                    //mySurfaceView.startThread(x,y);
+//                } catch (Exception e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
+//                break;
+//            case R.id.btnStop:
+//                mySurfaceView.stopThread();
+//                break;
+//        }
+//    }
 }
 
 class UpdateView extends Thread {
