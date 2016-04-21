@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager manager;
     private Sensor accelerometer;
     private Sensor magnetic;
+    private Sensor orient;
     private float[] gravity = new float[3];
     private float[] geomagnetic = new float[3];
 
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         manager=(SensorManager)getSystemService(SENSOR_SERVICE);
         accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetic = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        orient = manager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
         // Initialize data
         result = new float[3];
@@ -65,13 +67,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case Sensor.TYPE_MAGNETIC_FIELD:
                 geomagnetic = event.values.clone();
                 break;
+            case Sensor.TYPE_ORIENTATION:
+                result = event.values.clone();
+                lowPass(result);
+                text.setText("Angle around X  : " + result[1] + "\n" + "Angle around Z : " + result[2]);
+                perpendicularBar.setProgress( (int)result[1] + 180 );
+                levelBar.setProgress( (int)result[2] + 180 );
+                return;
         }
 
         if ((gravity == null) || (geomagnetic == null)) return;
 
         float[] RMatrix = new float[9];
-        float[] IMatrix = new float[9];
-        SensorManager.getRotationMatrix(RMatrix, IMatrix, gravity, geomagnetic);
+        SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
         SensorManager.getOrientation(RMatrix, result);
 
 
@@ -101,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         manager.registerListener(this, magnetic, SensorManager.SENSOR_DELAY_UI);
+//        manager.registerListener(this, orient, SensorManager.SENSOR_DELAY_UI);
     }
 
     // Unregister listener when activity pauses
@@ -116,4 +125,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             result[i] = result[i] + LOW_PASS_ALPHA * (oldResult[i] - result[i]);
         }
     }
+}
+
+class UpdateView extends Thread {
+
 }
