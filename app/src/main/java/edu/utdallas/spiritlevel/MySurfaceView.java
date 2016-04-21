@@ -153,6 +153,6 @@ public class MySurfaceView extends SurfaceView implements
         // TODO Auto-generated method stub
         drawThread = new DrawThread(getHolder(), this);
         drawThread.setRunning(true);
-        drawThread.start();
+        //drawThread.start();
     }
 }
