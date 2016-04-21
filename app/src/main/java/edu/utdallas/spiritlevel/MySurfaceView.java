@@ -20,6 +20,7 @@ public class MySurfaceView extends SurfaceView implements
     private Paint paint1 = new Paint();
     private Paint paint2 = new Paint();
     private Point location;
+    Paint paint = new Paint();
 
     public MySurfaceView(Context context) {
         super(context);
@@ -51,7 +52,11 @@ public class MySurfaceView extends SurfaceView implements
         paint2.setStrokeCap(Paint.Cap.SQUARE);
         paint2.setStyle(Paint.Style.FILL);
 
-
+        paint.setColor(Color.parseColor("#FFFFFF"));
+        paint.setStrokeWidth(1);
+        paint.setAntiAlias(true);
+        paint.setStrokeCap(Paint.Cap.SQUARE);
+        paint.setStyle(Paint.Style.FILL);
         location = new Point(0, 0);
     }
 
@@ -72,9 +77,29 @@ public class MySurfaceView extends SurfaceView implements
     }
 
     public void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.parseColor("#FEFCFF"));
-        canvas.drawCircle(this.getWidth()/2, this.getHeight()/2 - location.y, 400, paint1);
-        canvas.drawCircle(this.getWidth()/2, this.getHeight()/2 + location.y, 400, paint2);
+        if (location.x <= 1 && location.y <=1){
+            canvas.drawColor(Color.parseColor("#5EFB6E"));
+            Paint paint = new Paint();
+            paint.setColor(Color.parseColor("#FFFFFF"));
+            paint.setStrokeWidth(1);
+            paint.setAntiAlias(true);
+            paint.setStrokeCap(Paint.Cap.SQUARE);
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(this.getWidth() / 2, this.getHeight() / 2, 400, paint);
+        }else if(location.x >=60 || location.y >45){
+            Paint paint = new Paint();
+            paint.setColor(Color.parseColor("#FFFFFF"));
+            paint.setStrokeWidth(1);
+            paint.setAntiAlias(true);
+            paint.setStrokeCap(Paint.Cap.SQUARE);
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawLine(0,location.y,this.getWidth(),location.y,paint);
+        }else{
+            canvas.drawColor(Color.parseColor("#FEFCFF"));
+            canvas.drawCircle(this.getWidth() / 2 - location.x, this.getHeight() / 2 - location.y, 400, paint1);
+            canvas.drawCircle(this.getWidth()/2 + location.x, this.getHeight()/2 + location.y, 400, paint2);
+        }
+
     }
 
     class DrawThread extends Thread {
