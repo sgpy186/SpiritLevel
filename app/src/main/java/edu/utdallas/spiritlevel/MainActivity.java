@@ -1,13 +1,26 @@
 package edu.utdallas.spiritlevel;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
+import android.view.Display;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -113,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             seekBar2.setProgress((int) result[2] + 180);
             seekBar3.setProgress((int) result[0] + 180);
 
-            mySurfaceView.update(0, 2 * x);
+            mySurfaceView.update(y,x);
             //text.setText("Angle around X  : " + XAngle + "\n" + "Angle around Z : " + ZAngle);
             //perpendicularBar.setProgress( (int)(Float.parseFloat(XAngle)) + 180 );
             //levelBar.setProgress( (int)(Float.parseFloat(ZAngle)) + 180 );
