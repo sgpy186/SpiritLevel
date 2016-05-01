@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         layout = (RelativeLayout) findViewById(R.id.layout);
         mySurfaceView = new MySurfaceView(this);
 
+        mySurfaceView.getLayoutParams();
         layout.addView(mySurfaceView);
 
         seekBar1.setMax(360);

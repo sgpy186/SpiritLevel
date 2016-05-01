@@ -23,6 +23,7 @@ public class MySurfaceView extends SurfaceView implements
     Paint paint = new Paint();
     Paint perpPaint = new Paint();
     static boolean isSleep = false;
+
     public MySurfaceView(Context context) {
         super(context);
         initialize();
@@ -60,6 +61,8 @@ public class MySurfaceView extends SurfaceView implements
         paint.setStyle(Paint.Style.FILL);
 
         perpPaint.setColor(Color.parseColor("#000000"));
+        perpPaint.setTextSize(100);
+        perpPaint.setTextAlign(Paint.Align.CENTER);
         perpPaint.setStrokeWidth(10);
         perpPaint.setAntiAlias(true);
         perpPaint.setStrokeCap(Paint.Cap.SQUARE);
@@ -86,41 +89,38 @@ public class MySurfaceView extends SurfaceView implements
 
     public void onDraw(Canvas canvas) {
         isSleep = false;
-        if (Math.abs(location.x) <= 10 && Math.abs(location.y) <=10){
+        if (canvas == null) return;
+        if (Math.abs(location.x) <= 10 && Math.abs(location.y) <=10) {
+            // Meet level!
             canvas.drawColor(Color.parseColor("#5EFB6E"));
             canvas.drawCircle(this.getWidth() / 2, this.getHeight() / 2, 400, paint);
             isSleep = true;
         } else if(Math.abs(location.y) >= 500){
+            // Perpendicular mode
             canvas.drawColor(Color.parseColor("#FFFFFF"));
-            double angle = Math.abs(Math.toRadians(location.x/10));
-            Point start = new Point(this.getWidth()/2, 0);
-            Point end = new Point();
-            if (location.x < 0) {
-                end.x = (int) (this.getWidth()/2 + 1000*Math.sin(angle));
-            } else {
-                end.x = (int) (this.getWidth()/2 - 1000*Math.sin(angle));
-            }
-            end.y = (int) (1000*Math.cos(angle));
-            canvas.drawLine(start.x, start.y, end.x, end.y, perpPaint);
-//        } else if (location.y <= -500) {
+//            // Draw vertical line
 //            canvas.drawColor(Color.parseColor("#FFFFFF"));
 //            double angle = Math.abs(Math.toRadians(location.x/10));
-//            Point start = new Point(this.getWidth()/2, -this.getHeight());
+//            Point start = new Point(this.getWidth()/2, 0);
 //            Point end = new Point();
-//            if (location.x > 0) {
+//            if (location.x < 0) {
 //                end.x = (int) (this.getWidth()/2 + 1000*Math.sin(angle));
 //            } else {
 //                end.x = (int) (this.getWidth()/2 - 1000*Math.sin(angle));
 //            }
-//            end.y = (int) (this.getHeight() - 1000*Math.cos(angle));
+//            end.y = (int) (1000*Math.cos(angle));
 //            canvas.drawLine(start.x, start.y, end.x, end.y, perpPaint);
-//        } else if (Math.abs(location.x) >= 500) {
-//            canvas.drawColor(Color.parseColor("#FFFFFF"));
-//            canvas.drawLine(this.getWidth(), this.getHeight()/2, this.getWidth(), -location.y, perpPaint);
+            canvas.save();
+            String angle = Integer.toString((int)Math.abs(location.x)/10) + "°";
+            canvas.rotate(location.x/10, getWidth()/2, getHeight()/2);
+            canvas.drawText(angle, getWidth()/2, getHeight()/2, perpPaint);
+            canvas.restore();
+//            canvas.drawRect(rect, paint1);
         } else {
+            // Level mode
             canvas.drawColor(Color.parseColor("#FEFCFF"));
-            canvas.drawCircle(this.getWidth() / 2 + 2*location.x, this.getHeight() / 2 - 2*location.y, 400, paint1);
-            canvas.drawCircle(this.getWidth()/2 - 2*location.x, this.getHeight()/2 + 2*location.y, 400, paint2);
+            canvas.drawCircle(getWidth() / 2 + 2*location.x, getHeight() / 2 - 2*location.y, 400, paint1);
+            canvas.drawCircle(getWidth() / 2 - 2*location.x, getHeight() / 2 + 2*location.y, 400, paint2);
         }
 
     }
