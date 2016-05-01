@@ -95,23 +95,34 @@ public class MySurfaceView extends SurfaceView implements
             canvas.drawColor(Color.parseColor("#5EFB6E"));
             canvas.drawCircle(this.getWidth() / 2, this.getHeight() / 2, 400, paint);
             isSleep = true;
-        } else if(Math.abs(location.y) >= 500){
+        } else if(Math.abs(location.y) >= 500 && Math.abs(location.x)<=500){
             // Perpendicular mode
             canvas.drawColor(Color.parseColor("#FFFFFF"));
-
             canvas.save();
             String angle = Integer.toString((int)Math.abs(location.x)/10) + "°";
-            canvas.rotate(location.x / 10, getWidth() / 2, getHeight() / 2);
+            canvas.rotate(location.x / 10, getWidth()/2, getHeight()/2);
             canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
             if (location.y < 0){
-                canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),3*Math.abs(500 + location.y),paint1);
-                //canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),3*Math.abs(500 + location.y),paint1);
+                canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),2*Math.abs(500 + location.y),paint1);
+                //canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),getHeight()/2,paint1);
             }else{
-                canvas.drawRect(-getWidth(),2*getHeight(),2*getWidth(),getHeight()-3*location.y,paint1);
+                canvas.drawRect(-getWidth(),2*getHeight(),2*getWidth(),getHeight()-2*location.y,paint1);
             }
             canvas.restore();
-        }else if (Math.abs(location.x)>=500){
-
+        }else if (Math.abs(location.x)>=500 && Math.abs(location.y) < 500){
+            // Perpendicular mode
+            canvas.drawColor(Color.parseColor("#FFFFFF"));
+            canvas.save();
+            String angle = Integer.toString((int)Math.abs(location.y)/10) + "°";
+            canvas.rotate(location.y / 10, getWidth()/2, getHeight()/2);
+            canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
+            if (location.x < 0){
+                canvas.drawRect(2*getWidth(),-getHeight(),2*Math.abs(500 + location.x),2*getHeight(),paint1);
+                //canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),getHeight()/2,paint1);
+            }else{
+                canvas.drawRect(2*getWidth(),-getHeight(),2*Math.abs(500 + location.x),2*getHeight(),paint1);
+            }
+            canvas.restore();
         }else {
             // Level mode
             canvas.drawColor(Color.parseColor("#FEFCFF"));

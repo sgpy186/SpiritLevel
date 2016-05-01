@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean haveMag = false;
     private float[] result;
 
-    static int ACCE_FILTER_DATA_MIN_TIME = 10; // 1000ms
+    static int ACCE_FILTER_DATA_MIN_TIME = 50; // 1000ms
     long lastSaved = System.currentTimeMillis();
 
     private MySurfaceView mySurfaceView;
@@ -94,9 +94,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 haveMag = true;
                 break;
             case Sensor.TYPE_ORIENTATION:
-                result = event.values.clone();
-                haveGrav = true;
-                haveMag = true;
+//                result = event.values.clone();
+//                haveGrav = true;
+//                haveMag = true;
                 break;
         }
 
@@ -106,16 +106,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 haveGrav = false;
                 haveMag = false;
-//                float[] RMatrix = new float[9];
-//                SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
-//                SensorManager.getOrientation(RMatrix, result);
+                float[] RMatrix = new float[9];
+                float[] LMatrix = new float[9];
+                boolean success = SensorManager.getRotationMatrix(RMatrix, LMatrix, gravity, geomagnetic);
+                if (success){
+                    SensorManager.getOrientation(RMatrix, result);
+                }
+                //SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
+
 
                 lowPass(result);
 
                 // Display result on screen
-//                result[0] = (float) Math.toDegrees(result[0]);
-//                result[1] = (float) Math.toDegrees(result[1]);
-//                result[2] = (float) Math.toDegrees(result[2]);
+                result[0] = (float) Math.toDegrees(result[0]);
+                result[1] = (float) Math.toDegrees(result[1]);
+                result[2] = (float) Math.toDegrees(result[2]);
                 String XAngle = String.format(Locale.US, "%.1f", result[1]);
                 String YAngle = String.format(Locale.US, "%.1f", result[0]);
                 String ZAngle = String.format(Locale.US, "%.1f", result[2]);
