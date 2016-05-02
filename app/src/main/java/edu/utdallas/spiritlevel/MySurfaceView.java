@@ -1,9 +1,11 @@
 package edu.utdallas.spiritlevel;
 
 /**
- * Created by kriszhang on 4/21/16.
+ * Draw on surface view according to sensor data
+ * Created by Yue Zhang on 4/21/16.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,29 +18,33 @@ import android.view.SurfaceView;
 public class MySurfaceView extends SurfaceView implements
         SurfaceHolder.Callback  {
 
-    private DrawThread drawThread;
     private Paint paint1 = new Paint();
     private Paint paint2 = new Paint();
-    private static Point location;
-    Paint paint = new Paint();
-    Paint perpPaint = new Paint();
-    static boolean isSleep = false;
+    private Point location;
+    private Paint paint = new Paint();
+    private Paint textPaint = new Paint();
 
+    /**
+     * Constructors
+     * Author: Yue Zhang
+     */
     public MySurfaceView(Context context) {
         super(context);
         initialize();
     }
-
     public MySurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize();
     }
-
     public MySurfaceView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initialize();
     }
 
+    /**
+     * Do initialization, pre-allocate resources needed to draw on view
+     * Author: Yue Zhang
+     */
     private void initialize() {
         getHolder().addCallback(this);
         setFocusable(true);
@@ -60,48 +66,68 @@ public class MySurfaceView extends SurfaceView implements
         paint.setStrokeCap(Paint.Cap.SQUARE);
         paint.setStyle(Paint.Style.FILL);
 
-        perpPaint.setColor(Color.parseColor("#000000"));
-        perpPaint.setTextSize(100);
-        perpPaint.setTextAlign(Paint.Align.CENTER);
-        perpPaint.setStrokeWidth(10);
-        perpPaint.setAntiAlias(true);
-        perpPaint.setStrokeCap(Paint.Cap.SQUARE);
-        perpPaint.setStyle(Paint.Style.FILL);
+        textPaint.setColor(Color.parseColor("#000000"));
+        textPaint.setTextSize(100);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setStrokeWidth(10);
+        textPaint.setAntiAlias(true);
+        textPaint.setStrokeCap(Paint.Cap.SQUARE);
+        textPaint.setStyle(Paint.Style.FILL);
 
         location = new Point(0, 0);
     }
 
-    public void startThread() {
-        drawThread = new DrawThread(getHolder(), this);
-        drawThread.setRunning(true);
-        drawThread.start();
-    }
-
-    public void stopThread() {
-        drawThread.setRunning(false);
-        drawThread.interrupt();
-    }
-
+    /**
+     * Update sensor data values
+     * Author: Yue Zhang
+     */
     public void update(int x,int y) {
         location.x = x; // Z angle
         location.y = y; // X angle
     }
 
+    /**
+     * Draw on canvas
+     * Author: Yue Zhang
+     */
+    @Override
     public void onDraw(Canvas canvas) {
-        isSleep = false;
         if (canvas == null) return;
+
         if (Math.abs(location.x) <= 2 && Math.abs(location.y) <=2) {
+
             // Meet level!
             canvas.drawColor(Color.parseColor("#5EFB6E"));
             canvas.drawCircle(this.getWidth() / 2, this.getHeight() / 2, 400, paint);
-            isSleep = true;
-        }else if (Math.abs(location.x) <= 500 && Math.abs(location.y) <= 500){
+            canvas.drawText("0°", getWidth() / 2, getHeight() / 2, textPaint);
+
+        } else if (Math.abs(location.x) <= 500 && Math.abs(location.y) <= 500){
+
             // Level mode
+            // Clear
             canvas.drawColor(Color.parseColor("#FEFCFF"));
-            canvas.drawCircle(getWidth() / 2 - 2 * location.x, getHeight() / 2 - 2 * location.y, 400, paint1);
-            canvas.drawCircle(getWidth() / 2 + 2 * location.x, getHeight() / 2 + 2 * location.y, 400, paint2);
-        } else if(Math.abs(location.y) >= 520 && Math.abs(location.x)<=380){
-            // Perpendicular mode
+
+            // Draw two circle
+            canvas.drawCircle(getWidth() / 2 + 2*location.x, getHeight() / 2 + 2*location.y, 400, paint1);
+            canvas.drawCircle(getWidth() / 2 - 2*location.x, getHeight() / 2 - 2*location.y, 400, paint2);
+
+            // Draw angle in center and do rotation
+            int x = Math.abs(location.x)/10;
+            int y = Math.abs(location.y)/10;
+            int displayAngle = x > y ? x : y;
+            if (displayAngle == 0) displayAngle = 1;    // Avoid implicit degree
+            canvas.save();
+            double angle = Math.toDegrees(Math.atan(-((double) location.x)/((double)location.y)));
+            if (location.y >= 0) {
+                angle += 180;
+            }
+            canvas.rotate((int)angle, getWidth()/2, getHeight()/2);
+            canvas.drawText(displayAngle + "°", getWidth() / 2, getHeight() / 2, textPaint);
+            canvas.restore();
+
+        }  else if(Math.abs(location.y) >= 520 && Math.abs(location.x) <= 380){
+
+            // Perpendicular mode 1
             canvas.drawColor(Color.parseColor("#6698FF"));
             canvas.save();
             String angle = Integer.toString(Math.abs(location.x)/10) + "°";
@@ -111,9 +137,9 @@ public class MySurfaceView extends SurfaceView implements
                     canvas.drawColor(Color.parseColor("#E55451"));
                 }
                 canvas.drawRect(-getWidth(), -getHeight(), 2 * getWidth(), getHeight() / 2, paint);
-                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
+                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, textPaint);
                 canvas.restore();
-            }else{
+            } else {
                 canvas.rotate(-location.x / 10, getWidth() / 2, getHeight() / 2);
                 if (location.x / 10 == 0){
                     canvas.drawColor(Color.parseColor("#E55451"));
@@ -122,13 +148,17 @@ public class MySurfaceView extends SurfaceView implements
                 canvas.restore();
                 canvas.save();
                 canvas.rotate(-location.x / 10+180, getWidth() / 2, getHeight() / 2);
-                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
+                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, textPaint);
                 canvas.restore();
             }
-            canvas.drawLine(0,getHeight()/2,200,getHeight()/2,perpPaint);
-            canvas.drawLine(getWidth(), getHeight()/2, getWidth()-200, getHeight()/2, perpPaint);
-        }else if (Math.abs(location.x)>=380 && Math.abs(location.y) < 520){
-            // Perpendicular mode
+
+            // Draw standard line
+            canvas.drawLine(0,getHeight()/2,200,getHeight()/2, textPaint);
+            canvas.drawLine(getWidth(), getHeight()/2, getWidth()-200, getHeight()/2, textPaint);
+
+        } else if (Math.abs(location.x) >= 380 && Math.abs(location.y) < 520) {
+
+            // Perpendicular mode 2
             canvas.drawColor(Color.parseColor("#6698FF"));
             canvas.save();
             String angle = Integer.toString((int)Math.abs(location.y)/10) + "°";
@@ -141,9 +171,9 @@ public class MySurfaceView extends SurfaceView implements
                 canvas.restore();
                 canvas.save();
                 canvas.rotate(-location.y / 10 - 90, getWidth() / 2, getHeight() / 2);
-                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
+                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, textPaint);
                 canvas.restore();
-            }else{
+            } else {
                 if (location.y / 10 == 0){
                     canvas.drawColor(Color.parseColor("#E55451"));
                 }
@@ -152,16 +182,22 @@ public class MySurfaceView extends SurfaceView implements
                 canvas.restore();
                 canvas.save();
                 canvas.rotate(location.y / 10 + 90, getWidth() / 2, getHeight() / 2);
-                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
+                canvas.drawText(angle, getWidth() / 2, getHeight() / 2, textPaint);
                 canvas.restore();
             }
-            canvas.drawLine(getWidth()/2,getHeight(),getWidth()/2,getHeight()-200,perpPaint);
-            canvas.drawLine(getWidth() / 2, 0, getWidth() / 2, 200, perpPaint);
+
+            // Draw standard line
+            canvas.drawLine(getWidth()/2,getHeight(),getWidth()/2,getHeight()-200, textPaint);
+            canvas.drawLine(getWidth() / 2, 0, getWidth() / 2, 200, textPaint);
         }
     }
 
+    /**
+     * A thread to draw canvas on period
+     * Author: Yue Zhang
+     */
     class DrawThread extends Thread {
-        private SurfaceHolder surfaceHolder;
+        private final SurfaceHolder surfaceHolder;
         MySurfaceView mySurfaceView;
         private boolean run = false;
 
@@ -176,46 +212,35 @@ public class MySurfaceView extends SurfaceView implements
             this.run = run;
         }
 
+        @SuppressLint("WrongCall")
         @Override
         public void run() {
-            Canvas canvas = null;
             while (run) {
-                try {
-                    canvas = surfaceHolder.lockCanvas();
-                    synchronized (surfaceHolder) {
-                        if (isSleep){
-                            Thread.sleep(500);
-                        }
-                        mySurfaceView.onDraw(canvas);
-                        long time = 10;
-                        //mySurfaceView.update(location.x,location.y);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (canvas != null) {
-                        surfaceHolder.unlockCanvasAndPost(canvas);
-                    }
+                Canvas canvas = surfaceHolder.lockCanvas();
+                synchronized (surfaceHolder) {
+                    mySurfaceView.onDraw(canvas);
+                }
+                if (canvas != null) {
+                    surfaceHolder.unlockCanvasAndPost(canvas);
                 }
             }
         }
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        // TODO Auto-generated method stub
-    }
+    public void surfaceDestroyed(SurfaceHolder holder) { }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
-                               int height) {
-        // TODO Auto-generated method stub
-    }
+                               int height) { }
 
+    /**
+     * Start drawing thread when surface created
+     * Author: Yue Zhang
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        // TODO Auto-generated method stub
-        drawThread = new DrawThread(getHolder(), this);
+        DrawThread drawThread = new DrawThread(getHolder(), this);
         drawThread.setRunning(true);
         drawThread.start();
     }
