@@ -98,13 +98,14 @@ public class MySurfaceView extends SurfaceView implements
         } else if(Math.abs(location.y) >= 500 && Math.abs(location.x)<=500){
             // Perpendicular mode
             canvas.drawColor(Color.parseColor("#FFFFFF"));
+
             canvas.save();
-            String angle = Integer.toString((int)Math.abs(location.x)/10) + "°";
+            String angle = Integer.toString(Math.abs(location.x)/10) + "°";
             canvas.rotate(location.x / 10, getWidth()/2, getHeight()/2);
             canvas.drawText(angle, getWidth() / 2, getHeight() / 2, perpPaint);
             if (location.y < 0){
-                canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),2*Math.abs(500 + location.y),paint1);
-                //canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),getHeight()/2,paint1);
+                //canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),2*Math.abs(500 + location.y),paint1);
+                canvas.drawRect(-getWidth(),-getHeight(),2*getWidth(),getHeight()/2,paint1);
             }else{
                 canvas.drawRect(-getWidth(),2*getHeight(),2*getWidth(),getHeight()-2*location.y,paint1);
             }

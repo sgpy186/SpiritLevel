@@ -72,9 +72,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         magnetic = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         orientation = manager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
-        //findViewById(R.id.btnStart).setOnClickListener(this);
-        //findViewById(R.id.btnStop).setOnClickListener(this);
-
         // Initialize data
         result = new float[3];
         for(int i = 0; i < 3; i++) {
@@ -94,9 +91,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 haveMag = true;
                 break;
             case Sensor.TYPE_ORIENTATION:
-//                result = event.values.clone();
-//                haveGrav = true;
-//                haveMag = true;
+                result = event.values.clone();
+                haveGrav = true;
+                haveMag = true;
                 break;
         }
 
@@ -106,21 +103,53 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 haveGrav = false;
                 haveMag = false;
-                float[] RMatrix = new float[9];
-                float[] LMatrix = new float[9];
-                boolean success = SensorManager.getRotationMatrix(RMatrix, LMatrix, gravity, geomagnetic);
-                if (success){
-                    SensorManager.getOrientation(RMatrix, result);
-                }
+//                float[] inR = new float[9];
+//                float[] outR = new float[9];
+//                boolean success = SensorManager.getRotationMatrix(inR, null, gravity, geomagnetic);
+//                if (success){
+//                    switch (((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
+////                        case Surface.ROTATION_90:
+////                            SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);
+////                            break;
+////                        case Surface.ROTATION_180:
+////                            SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_MINUS_X, SensorManager.AXIS_MINUS_Y, outR);
+////                            break;
+////                        case Surface.ROTATION_270:
+////                            SensorManager.remapCoordinateSystem(inR, SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_X, outR);
+////                            break;
+//                        default:case Surface.ROTATION_0:
+//                            outR = inR;
+//                            break;
+//                    }
+//                    SensorManager.getOrientation(outR, result);
+//                }
                 //SensorManager.getRotationMatrix(RMatrix, null, gravity, geomagnetic);
-
 
                 lowPass(result);
 
                 // Display result on screen
-                result[0] = (float) Math.toDegrees(result[0]);
-                result[1] = (float) Math.toDegrees(result[1]);
-                result[2] = (float) Math.toDegrees(result[2]);
+//                result[0] = (float) Math.toDegrees(result[0]);
+//                result[1] = (float) Math.toDegrees(result[1]);
+//                result[2] = (float) Math.toDegrees(result[2]);
+
+//                float azimuth = result[0];
+//                float pitch = result[1];
+//                float roll = result[2];
+//                if (pitch < -45 && pitch > -135) {
+//                    text.setText("Top side of the phone is Up!");
+//
+//                } else if (pitch > 45 && pitch < 135) {
+//
+//                    text.setText("Bottom side of the phone is Up!");
+//
+//                } else if (roll > 45) {
+//
+//                    text.setText("Right side of the phone is Up!");
+//
+//                } else if (roll < -45) {
+//
+//                    text.setText("Left side of the phone is Up!");
+//                }
                 String XAngle = String.format(Locale.US, "%.1f", result[1]);
                 String YAngle = String.format(Locale.US, "%.1f", result[0]);
                 String ZAngle = String.format(Locale.US, "%.1f", result[2]);
@@ -130,8 +159,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 x = Integer.parseInt(XAngle);
                 y = Integer.parseInt(ZAngle);
 
-                String str = "Angle around X : " + XAngle + "\nAngle around Z : " + ZAngle
-                        + "\nAngle around Y : " + YAngle;
+                String str = "Result[1]: " + XAngle + "\nResult[2] " + ZAngle
+                        + "\nResult[0]: " + YAngle;
                 text.setText(str);
                 seekBar1.setProgress((int) result[1] + 180);
                 seekBar2.setProgress((int) result[2] + 180);
